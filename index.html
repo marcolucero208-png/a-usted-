@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🌸 Lluvia de Flores</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  background:#0d0814;
+  font-family: Georgia, serif;
+  touch-action: none;
+  user-select: none;
+}
+canvas {
+  display:block;
+  position:fixed;
+  top:0; left:0;
+}
+
+/* ── PANTALLA INICIO ── */
+#pantalla-inicio {
+  position:fixed; inset:0; z-index:20;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 30% 20%, #2d1458 0%, #0d0814 60%),
+              radial-gradient(ellipse at 70% 80%, #1a0a3a 0%, transparent 50%);
+  padding:20px;
+}
+#pantalla-inicio h1 {
+  font-size: clamp(2.2rem, 8vw, 3.8rem);
+  color: #f472b6;
+  text-align:center;
+  line-height:1.15;
+  margin-bottom:8px;
+  text-shadow: 0 0 40px rgba(244,114,182,.7);
+}
+#pantalla-inicio .sub {
+  color:rgba(252,231,243,.5);
+  font-size:.9rem; letter-spacing:2px;
+  text-transform:uppercase;
+  text-align:center; margin-bottom:28px;
+}
+.card-inicio {
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(244,114,182,.25);
+  border-radius:26px; padding:28px 22px;
+  max-width:400px; width:100%;
+  backdrop-filter:blur(16px);
+  text-align:center;
+}
+.card-inicio .ico { font-size:4rem; display:block; margin-bottom:14px; }
+.card-inicio p {
+  color:rgba(252,231,243,.75);
+  font-size:.97rem; line-height:1.7;
+  margin-bottom:20px;
+}
+.card-inicio p strong { color:#f9a8d4; }
+.guia {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px; margin-bottom:22px;
+}
+.guia-item {
+  background:rgba(244,114,182,.08);
+  border:1px solid rgba(244,114,182,.15);
+  border-radius:12px; padding:9px 6px;
+  color:rgba(252,231,243,.8);
+  font-size:.83rem; font-weight:bold;
+}
+.guia-item span { font-size:1.5rem; display:block; margin-bottom:3px; }
+#btn-jugar {
+  background:linear-gradient(135deg,#ec4899,#9333ea);
+  color:#fff; border:none; cursor:pointer;
+  font-size:1.1rem; font-weight:bold;
+  padding:13px 34px; border-radius:50px;
+  box-shadow:0 0 28px rgba(236,72,153,.5);
+  transition:transform .15s, box-shadow .15s;
+  font-family: Georgia, serif;
+}
+#btn-jugar:hover { transform:translateY(-3px); box-shadow:0 0 44px rgba(236,72,153,.7); }
+#btn-jugar:active { transform:scale(.96); }
+
+/* ── PANTALLA FIN ── */
+#pantalla-fin {
+  position:fixed; inset:0; z-index:20;
+  display:none;
+  flex-direction:column; align-items:center;
+  overflow-y:auto;
+  background: radial-gradient(ellipse at 30% 20%, #2d1458 0%, #0d0814 60%);
+  padding:24px 16px 50px;
+}
+.fin-wrap { max-width:480px; width:100%; display:flex; flex-direction:column; gap:16px; }
+
+.res-card {
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(244,114,182,.25);
+  border-radius:26px; padding:30px 22px;
+  text-align:center;
+  backdrop-filter:blur(16px);
+}
+.res-card .estrellas { font-size:2.4rem; margin-bottom:8px; }
+.res-card .titulo {
+  font-size:1.9rem; color:#f472b6;
+  text-shadow:0 0 28px rgba(244,114,182,.6);
+  margin-bottom:6px;
+}
+.res-card .score {
+  font-size:3rem; font-weight:bold;
+  color:#fbbf24;
+  text-shadow:0 0 24px rgba(251,191,36,.5);
+  margin:10px 0;
+}
+.res-card .msg {
+  color:rgba(252,231,243,.65); font-size:.93rem; line-height:1.6;
+  padding:12px; background:rgba(244,114,182,.06);
+  border-radius:12px; margin-bottom:18px;
+}
+.btn-group { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.btn-fin {
+  border:none; cursor:pointer;
+  font-size:1rem; font-weight:bold;
+  padding:12px 28px; border-radius:50px;
+  font-family: Georgia, serif;
+  transition:transform .15s;
+}
+.btn-fin:active { transform:scale(.96); }
+.btn-fin.principal {
+  background:linear-gradient(135deg,#ec4899,#9333ea); color:#fff;
+  box-shadow:0 0 22px rgba(236,72,153,.4);
+}
+.btn-fin.sec {
+  background:rgba(255,255,255,.08); color:rgba(252,231,243,.8);
+  border:1px solid rgba(244,114,182,.25);
+}
+
+/* ── CARTA AMOR ── */
+.carta {
+  background:linear-gradient(145deg, #140a24, #0d0814);
+  border:1px solid rgba(244,114,182,.3);
+  border-radius:26px; padding:36px 24px 28px;
+  position:relative;
+  box-shadow:0 0 50px rgba(244,114,182,.1);
+}
+.carta::before {
+  content:''; position:absolute; inset:0; border-radius:26px;
+  background:radial-gradient(ellipse at 50% 0%, rgba(244,114,182,.08) 0%, transparent 55%);
+  pointer-events:none;
+}
+.carta-sobre {
+  position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+  font-size:2.2rem;
+  filter:drop-shadow(0 0 12px rgba(244,114,182,.8));
+}
+.carta-linea {
+  height:1px; width:100%; margin:14px 0;
+  background:repeating-linear-gradient(90deg,
+    rgba(244,114,182,.4) 0,rgba(244,114,182,.4) 8px,
+    transparent 8px,transparent 16px);
+}
+.carta-texto {
+  font-family:'Georgia',serif; font-size:1.08rem;
+  color:rgba(252,231,243,.82); line-height:1.9;
+  position:relative; z-index:1;
+}
+.carta-texto p { margin-bottom:12px; }
+.te-amo-linea {
+  display:block; text-align:center;
+  font-size:1.9rem; color:#f472b6;
+  text-shadow:0 0 30px rgba(244,114,182,.8);
+  margin:10px 0;
+}
+.te-amo-grande {
+  font-size:2.4rem; color:#fbbf24;
+  text-shadow:0 0 36px rgba(251,191,36,.8);
+}
+.carta-firma {
+  font-family:Georgia,serif; font-size:1rem;
+  color:#f9a8d4; text-align:right;
+  margin-top:18px; line-height:1.75;
+  position:relative; z-index:1;
+}
+.carta-firma em { color:rgba(192,132,252,.7); font-size:.88rem; }
+.coras {
+  display:flex; gap:10px; justify-content:center;
+  margin-top:18px; flex-wrap:wrap;
+}
+.cora { font-size:1.5rem; display:inline-block; }
+
+/* Animación latir corazones vía JS */
+</style>
+</head>
+<body>
+
+<!-- CANVAS JUEGO -->
+<canvas id="c"></canvas>
+
+<!-- INICIO -->
+<div id="pantalla-inicio">
+  <h1>Lluvia<br>de Flores 🌸</h1>
+  <p class="sub">un jardín que cae del cielo</p>
+  <div class="card-inicio">
+    <span class="ico">🧺</span>
+    <p>Las flores más bonitas caen del cielo nocturno.<br>
+    <strong>Mueve la cesta y atrápales todas.</strong><br>
+    ¡Cuidado con las espinas! 🌵</p>
+    <div class="guia">
+      <div class="guia-item"><span>🌸</span>Rosa +10</div>
+      <div class="guia-item"><span>🌺</span>Hibisco +20</div>
+      <div class="guia-item"><span>💖</span>Corazón +50</div>
+      <div class="guia-item"><span>🌵</span>Espina −❤️</div>
+    </div>
+    <button id="btn-jugar">¡Atrapar flores! 🌙</button>
+  </div>
+</div>
+
+<!-- FIN -->
+<div id="pantalla-fin">
+  <div class="fin-wrap">
+    <div class="res-card">
+      <div class="estrellas" id="f-ests">🌸🌸🌸</div>
+      <div class="titulo" id="f-tit">¡Jardín perfecto!</div>
+      <div class="score" id="f-score">0 pts</div>
+      <div class="msg" id="f-msg"></div>
+      <div class="btn-group">
+        <button class="btn-fin principal" id="btn-reiniciar">🔄 Otra vez</button>
+        <button class="btn-fin sec" id="btn-volver">🏠 Inicio</button>
+      </div>
+    </div>
+
+    <div class="carta">
+      <div class="carta-sobre">💌</div>
+      <div class="carta-linea"></div>
+      <div class="carta-texto">
+        <p>Mi niña bonita... 🌙</p>
+        <p>Sé que hoy el mundo no fue amable contigo. Que hubo momentos pesados y que quizás las cosas no salieron como querías. Pero aquí estoy yo, recordándote algo que nunca va a cambiar:</p>
+        <span class="te-amo-linea" id="ta1">💗 Te amo. 💗</span>
+        <p>Te amo en los días brillantes y en los nublados. Te amo cuando sonríes y cuando el cansancio te gana. Te amo completa, tal como eres, sin ningún "pero". 🌸</p>
+        <p>Espero que esta lluvia de flores tonta y absurda te haya sacado aunque sea una sonrisita chiquita. Eso era todo lo que quería. 🥹</p>
+        <span class="te-amo-linea te-amo-grande" id="ta2">✨ TE AMO MUCHÍSIMO ✨</span>
+        <p>Eres mi flor favorita de todos los jardines del mundo. La más especial, la más brillante, la más mía. No te olvides de eso nunca, especialmente en los días difíciles. 💛</p>
+        <p>Mañana va a ser mejor. Y si no, ahí voy a estar yo. Siempre. 🫂</p>
+      </div>
+      <div class="carta-linea"></div>
+      <div class="carta-firma">
+        Con todo el amor del universo,<br>
+        <strong>Att: Tu Ojitos Bonitos 👀💕</strong><br>
+        <em>(que no te va a dejar solita, ñoño 🫂)</em>
+      </div>
+      <div class="coras">
+        <span class="cora">💗</span>
+        <span class="cora">🌸</span>
+        <span class="cora">💛</span>
+        <span class="cora">🌺</span>
+        <span class="cora">💜</span>
+        <span class="cora">✨</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════
+//  SETUP CANVAS
+// ════════════════════════════════════
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let W = 0, H = 0;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ════════════════════════════════════
+//  ESTRELLAS (fondo)
+// ════════════════════════════════════
+const estrellas = [];
+for (let i = 0; i < 130; i++) {
+  estrellas.push({
+    x: Math.random(),
+    y: Math.random(),
+    r: Math.random() * 1.4 + 0.3,
+    vel: Math.random() * 0.012 + 0.004,
+    fase: Math.random() * Math.PI * 2,
+  });
+}
+
+function dibujarFondo(t) {
+  // gradiente noche
+  const g = ctx.createRadialGradient(W*0.25, H*0.15, 0, W*0.5, H*0.5, W*0.85);
+  g.addColorStop(0, '#2d1458');
+  g.addColorStop(0.6, '#0d0814');
+  g.addColorStop(1, '#0a0618');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // estrellas
+  estrellas.forEach(e => {
+    const brillo = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(t * e.vel * 60 + e.fase));
+    ctx.globalAlpha = brillo;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(e.x * W, e.y * H, e.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ════════════════════════════════════
+//  ESTADO DEL JUEGO
+// ════════════════════════════════════
+const TIPOS = [
+  { e:'🌸', pts:10,  malo:false },
+  { e:'🌷', pts:12,  malo:false },
+  { e:'🌺', pts:20,  malo:false },
+  { e:'🌻', pts:15,  malo:false },
+  { e:'🦋', pts:30,  malo:false },
+  { e:'⭐', pts:25,  malo:false },
+  { e:'💖', pts:50,  malo:false },
+  { e:'🌵', pts:0,   malo:true  },
+];
+
+let jugando = false;
+let pts, vidas, nivel, combo;
+let tiempoTotal, tiempoR;
+let flores = [];       // objetos cayendo
+let cestaX = 300;
+let particulas = [];   // efectos visuales
+let mensajes = [];     // mensajes flotantes
+let spawnAcum = 0;
+let timerInterval = null;
+let lastTime = 0;
+let raf = null;
+
+// corazones pulsando
+let coraScale = 1, coraDir = 1;
+function animarCorazones(t) {
+  coraScale += coraDir * 0.018;
+  if (coraScale > 1.45) coraDir = -1;
+  if (coraScale < 0.95) coraDir = 1;
+  document.querySelectorAll('.cora').forEach((el, i) => {
+    const off = Math.sin(t * 2 + i * 0.6) * 0.25 + 1;
+    el.style.transform = `scale(${off})`;
+  });
+  // TE AMO pulsante
+  ['ta1','ta2'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const s = 1 + 0.06 * Math.sin(t * 1.8 + i * 1.2);
+      el.style.transform = `scale(${s})`;
+    }
+  });
+}
+
+// ════════════════════════════════════
+//  INPUT
+// ════════════════════════════════════
+document.addEventListener('mousemove', e => {
+  if (jugando) cestaX = e.clientX;
+});
+document.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (jugando) cestaX = e.touches[0].clientX;
+}, { passive: false });
+
+// ════════════════════════════════════
+//  INICIAR JUEGO
+// ════════════════════════════════════
+function iniciarJuego() {
+  pts = 0; vidas = 3; nivel = 1; combo = 0;
+  tiempoTotal = 40; tiempoR = 40;
+  flores = []; particulas = []; mensajes = [];
+  spawnAcum = 0;
+  cestaX = W / 2;
+  jugando = true;
+
+  document.getElementById('pantalla-inicio').style.display = 'none';
+  document.getElementById('pantalla-fin').style.display    = 'none';
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!jugando) return;
+    tiempoR--;
+    nivel = tiempoR > 26 ? 1 : tiempoR > 13 ? 2 : 3;
+    if (tiempoR <= 0) terminar();
+  }, 1000);
+
+  cancelAnimationFrame(raf);
+  lastTime = performance.now();
+  raf = requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════
+//  SPAWN FLORES
+// ════════════════════════════════════
+function spawnFlor() {
+  const malaPct = nivel === 1 ? 0.13 : nivel === 2 ? 0.20 : 0.28;
+  let tipo;
+  if (Math.random() < malaPct) {
+    tipo = TIPOS.find(t => t.malo);
+  } else {
+    const buenas = TIPOS.filter(t => !t.malo);
+    // corazón es raro
+    const pool = [];
+    buenas.forEach(t => {
+      const n = t.pts >= 50 ? 1 : t.pts >= 30 ? 2 : 4;
+      for (let i = 0; i < n; i++) pool.push(t);
+    });
+    tipo = pool[Math.floor(Math.random() * pool.length)];
+  }
+  const vel = nivel === 1
+    ? (1.8 + Math.random() * 1.2)
+    : nivel === 2
+    ? (2.8 + Math.random() * 1.5)
+    : (4.0 + Math.random() * 2.0);
+
+  flores.push({
+    x: Math.random() * (W - 80) + 40,
+    y: -40,
+    e: tipo.e,
+    pts: tipo.pts,
+    malo: tipo.malo,
+    vel,
+    rot: Math.random() * Math.PI * 2,
+    rotVel: (Math.random() - 0.5) * 0.06,
+    size: 28 + Math.random() * 12,
+  });
+}
+
+// ════════════════════════════════════
+//  LOOP PRINCIPAL
+// ════════════════════════════════════
+function loop(now) {
+  const dt = Math.min((now - lastTime) / 16.667, 4);
+  lastTime = now;
+  const t = now / 1000;
+
+  // ── ACTUALIZAR ──
+  if (jugando) {
+    // spawn
+    const intervalo = nivel === 1 ? 70 : nivel === 2 ? 48 : 33;
+    spawnAcum += dt;
+    if (spawnAcum >= intervalo) {
+      spawnAcum = 0;
+      spawnFlor();
+      if (nivel >= 2 && Math.random() < 0.3) spawnFlor();
+    }
+
+    // mover flores + colisión
+    const cestaAncho = 80;
+    const cestaY = H - 72;
+    for (let i = flores.length - 1; i >= 0; i--) {
+      const f = flores[i];
+      f.y += f.vel * dt;
+      f.rot += f.rotVel * dt;
+
+      // colisión con cesta
+      if (
+        f.y + f.size / 2 > cestaY &&
+        f.y - f.size / 2 < cestaY + 48 &&
+        f.x > cestaX - cestaAncho - 10 &&
+        f.x < cestaX + cestaAncho + 10
+      ) {
+        flores.splice(i, 1);
+        if (f.malo) {
+          vidas--;
+          combo = 0;
+          crearMensaje('¡Ay! 🌵', cestaX, cestaY, '#f87171', false);
+          if (vidas <= 0) { terminar(); return; }
+        } else {
+          combo++;
+          const bonus = combo >= 5 ? 2 : combo >= 3 ? 1.5 : 1;
+          const ganado = Math.round(f.pts * bonus);
+          pts += ganado;
+          const esAmor = f.pts >= 50;
+          const txt = esAmor ? '💖 ¡TE AMO! +' + ganado
+            : combo >= 5 ? '🔥 COMBO x' + combo + '! +' + ganado
+            : ['¡Atrapada! 🌸','¡Perfecto! ✨','¡Wow! 💗','¡Genial! 🦋'][Math.floor(Math.random()*4)];
+          crearMensaje(txt, f.x, cestaY, esAmor ? '#fbbf24' : '#f9a8d4', esAmor);
+          crearParticulas(f.x, cestaY, f.e);
+        }
+        continue;
+      }
+
+      // fuera de pantalla
+      if (f.y > H + 50) {
+        if (!f.malo) combo = 0; // pierde combo si no atrapa flor
+        flores.splice(i, 1);
+      }
+    }
+
+    // mover partículas
+    for (let i = particulas.length - 1; i >= 0; i--) {
+      const p = particulas[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 0.08 * dt;
+      p.vida -= dt;
+      if (p.vida <= 0) particulas.splice(i, 1);
+    }
+
+    // mover mensajes
+    for (let i = mensajes.length - 1; i >= 0; i--) {
+      const m = mensajes[i];
+      m.y -= 0.8 * dt;
+      m.vida -= dt;
+      if (m.vida <= 0) mensajes.splice(i, 1);
+    }
+  }
+
+  // ── DIBUJAR ──
+  dibujarFondo(t);
+
+  if (jugando) {
+    // flores
+    flores.forEach(f => {
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.rot);
+      ctx.font = f.size + 'px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(f.e, 0, 0);
+      ctx.restore();
+    });
+
+    // cesta
+    dibujarCesta(cestaX, H - 72);
+
+    // partículas
+    particulas.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.vida / p.vidaMax);
+      ctx.font = '18px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.e, p.x, p.y);
+    });
+    ctx.globalAlpha = 1;
+
+    // mensajes
+    mensajes.forEach(m => {
+      const a = Math.min(1, m.vida / 0.4);
+      ctx.globalAlpha = a;
+      ctx.font = (m.grande ? 'bold 22px' : 'bold 17px') + ' Georgia, serif';
+      ctx.fillStyle = m.color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      // sombra
+      ctx.shadowColor = m.color;
+      ctx.shadowBlur = 12;
+      ctx.fillText(m.txt, m.x, m.y);
+      ctx.shadowBlur = 0;
+    });
+    ctx.globalAlpha = 1;
+
+    // HUD
+    dibujarHUD(t);
+  }
+
+  // animar corazones en pantalla fin
+  if (document.getElementById('pantalla-fin').style.display === 'flex') {
+    animarCorazones(t);
+  }
+
+  raf = requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════
+//  CESTA
+// ════════════════════════════════════
+function dibujarCesta(cx, cy) {
+  const w = 88, h = 46;
+  ctx.save();
+  ctx.translate(cx - w/2, cy);
+
+  // sombra glow
+  ctx.shadowColor = 'rgba(244,114,182,0.5)';
+  ctx.shadowBlur = 18;
+
+  // cuerpo
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, '#fce7f3');
+  grad.addColorStop(1, '#fbcfe8');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(8, 0);
+  ctx.lineTo(w - 8, 0);
+  ctx.quadraticCurveTo(w + 4, 0, w + 2, 10);
+  ctx.lineTo(w - 6, h - 8);
+  ctx.quadraticCurveTo(w - 6, h, w - 16, h);
+  ctx.lineTo(16, h);
+  ctx.quadraticCurveTo(6, h, 6, h - 8);
+  ctx.lineTo(0, 10);
+  ctx.quadraticCurveTo(-2, 0, 8, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#ec4899';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // trama
+  ctx.strokeStyle = 'rgba(236,72,153,0.22)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(4, (h/4)*i);
+    ctx.lineTo(w-4, (h/4)*i);
+    ctx.stroke();
+  }
+  for (let i = 1; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo((w/5)*i, 0);
+    ctx.lineTo((w/5)*i, h);
+    ctx.stroke();
+  }
+
+  // emoji cesta
+  ctx.font = '26px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🧺', w/2, h/2);
+  ctx.restore();
+}
+
+// ════════════════════════════════════
+//  HUD
+// ════════════════════════════════════
+function dibujarHUD(t) {
+  // fondo top
+  const gHud = ctx.createLinearGradient(0, 0, 0, 60);
+  gHud.addColorStop(0, 'rgba(13,8,20,0.92)');
+  gHud.addColorStop(1, 'rgba(13,8,20,0)');
+  ctx.fillStyle = gHud;
+  ctx.fillRect(0, 0, W, 60);
+
+  ctx.font = 'bold 16px Georgia, serif';
+  ctx.textBaseline = 'middle';
+
+  // puntos
+  ctx.fillStyle = '#fce7f3';
+  ctx.textAlign = 'left';
+  ctx.fillText('⭐ ' + pts, 16, 24);
+
+  // vidas
+  ctx.textAlign = 'right';
+  ctx.fillText('❤️'.repeat(Math.max(0, vidas)), W - 16, 24);
+
+  // barra tiempo centrada
+  const bw = Math.min(200, W * 0.38);
+  const bx = W/2 - bw/2;
+  const by = 14;
+  const bh = 10;
+  const pct = tiempoR / tiempoTotal;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 5);
+  ctx.fill();
+
+  const barGrad = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+  barGrad.addColorStop(0, '#34d399');
+  barGrad.addColorStop(0.5, '#f472b6');
+  barGrad.addColorStop(1, '#9333ea');
+  ctx.fillStyle = barGrad;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw * pct, bh, 5);
+  ctx.fill();
+
+  // nivel
+  ctx.fillStyle = 'rgba(244,114,182,0.7)';
+  ctx.font = '13px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Niv ' + nivel, W/2, 38);
+
+  // combo
+  if (combo >= 3) {
+    const pulse = 1 + 0.1 * Math.sin(t * 8);
+    ctx.save();
+    ctx.translate(W/2, 56);
+    ctx.scale(pulse, pulse);
+    ctx.font = 'bold 15px Georgia, serif';
+    ctx.fillStyle = '#fbbf24';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#fbbf24';
+    ctx.shadowBlur = 14;
+    ctx.fillText('🔥 COMBO x' + combo, 0, 0);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+}
+
+// ════════════════════════════════════
+//  EFECTOS
+// ════════════════════════════════════
+function crearMensaje(txt, x, y, color, grande) {
+  mensajes.push({ txt, x, y: y - 10, color, grande, vida: grande ? 1.4 : 1.1, vidaMax: grande ? 1.4 : 1.1 });
+}
+
+function crearParticulas(x, y, e) {
+  for (let i = 0; i < 7; i++) {
+    const ang = (Math.PI * 2 / 7) * i + Math.random() * 0.4;
+    const spd = 1.5 + Math.random() * 2.5;
+    particulas.push({
+      x, y,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd - 2,
+      e,
+      vida: 30 + Math.random() * 20,
+      vidaMax: 50,
+    });
+  }
+}
+
+// ════════════════════════════════════
+//  TERMINAR
+// ════════════════════════════════════
+function terminar() {
+  jugando = false;
+  clearInterval(timerInterval);
+  flores = []; particulas = []; mensajes = [];
+
+  let ests, tit, msg;
+  if (pts >= 500) {
+    ests = '🌸🌸🌸'; tit = '¡Jardín de ensueño! 🌙';
+    msg = '¡Eres extraordinaria! Atrapaste las flores más bonitas del cielo nocturno. El jardín brilla gracias a ti. ✨';
+    lanzarConfetti();
+  } else if (pts >= 220) {
+    ests = '🌸🌸'; tit = '¡Muy bien, florecita!';
+    msg = '¡Qué talentosa! Casi todas las flores cayeron en tu cesta. El jardín quedó hermoso. 🌺';
+  } else {
+    ests = '🌸'; tit = '¡Gracias por jugar! 💕';
+    msg = 'Las flores te quieren aunque no las hayas atrapado todas. Lo importante es que sonreíste un ratito. 🌸';
+  }
+
+  document.getElementById('f-ests').textContent = ests;
+  document.getElementById('f-tit').textContent  = tit;
+  document.getElementById('f-score').textContent = pts + ' pts';
+  document.getElementById('f-msg').textContent   = msg;
+  document.getElementById('pantalla-fin').style.display = 'flex';
+}
+
+// ════════════════════════════════════
+//  CONFETTI (DOM — funciona siempre)
+// ════════════════════════════════════
+function lanzarConfetti() {
+  const items = ['🌸','🌺','💖','✨','🦋','💗','🌷','⭐'];
+  for (let i = 0; i < 70; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.style.cssText =
+        'position:fixed;top:0;pointer-events:none;z-index:999;' +
+        'font-size:' + (1 + Math.random() * 0.8) + 'rem;' +
+        'left:' + (Math.random() * 100) + 'vw;' +
+        'animation:none;transition:none;';
+      el.textContent = items[Math.floor(Math.random() * items.length)];
+      document.body.appendChild(el);
+      const dur = 1500 + Math.random() * 2000;
+      const delay = Math.random() * 800;
+      setTimeout(() => {
+        el.style.transition = 'transform ' + dur + 'ms linear, opacity ' + dur + 'ms ease';
+        el.style.transform  = 'translateY(110vh) rotate(' + (Math.random()*720-360) + 'deg)';
+        el.style.opacity    = '0';
+      }, delay);
+      setTimeout(() => el.remove(), dur + delay + 100);
+    }, i * 25);
+  }
+}
+
+// ════════════════════════════════════
+//  BOTONES
+// ════════════════════════════════════
+document.getElementById('btn-jugar').onclick    = iniciarJuego;
+document.getElementById('btn-reiniciar').onclick = iniciarJuego;
+document.getElementById('btn-volver').onclick = () => {
+  jugando = false;
+  clearInterval(timerInterval);
+  flores = []; particulas = []; mensajes = [];
+  document.getElementById('pantalla-fin').style.display   = 'none';
+  document.getElementById('pantalla-inicio').style.display = 'flex';
+};
+
+// Arrancar loop de fondo aunque no haya juego
+raf = requestAnimationFrame(loop);
+</script>
+</body>
+</html>
